@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import insert
 from app.config.db import AsyncSession
 from app.models.country import Country
 from app.models.regions import Region
-from app.parsers.wiki_parser import WikiParser
+from app.parsers.initial_parser import parser_name, parsers
 
 
 class DataSaver:
@@ -44,7 +44,10 @@ class DataSaver:
 
 
 async def main():
-    parser = WikiParser()
+    parser = parsers.get(parser_name)
+    if not parser:
+        raise ValueError(f"Unknown parser: {parser_name}")
+
     saver = DataSaver()
 
     data = await parser.parse()
