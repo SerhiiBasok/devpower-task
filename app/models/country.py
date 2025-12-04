@@ -2,7 +2,6 @@ from sqlalchemy import String
 from sqlalchemy import Integer, ForeignKey
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 from app.models.base import Base
-from app.models.regions import Region
 
 
 class Country(Base):
@@ -16,4 +15,4 @@ class Country(Base):
         ForeignKey("regions.id", ondelete="CASCADE"), nullable=False
     )
 
-    region: Mapped[Region] = relationship(Region, back_populates="countries")
+    region: Mapped["Region"] = relationship("Region", back_populates="countries")
