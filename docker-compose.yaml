@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - my_db:/var/lib/postgresql/data
+
+  migrations:
+    build: .
+    depends_on:
+      - postgres
+    working_dir: /app
+    command: [ "./script/wait-for-postgres.sh", "postgres", "python", "-m", "app.models.init_db" ]
+
+
+  get_data:
+    build: .
+    depends_on:
+      - postgres
+      - migrations
+    env_file:
+      - .env
+    working_dir: /app
+    command: [ "./script/wait-for-postgres.sh", "postgres", "python", "-m", "app.services.data_get" ]
+
+  print_data:
+    build: .
+    depends_on:
+      - postgres
+      - migrations
+    env_file:
+      - .env
+    working_dir: /app
+    command: [ "./script/wait-for-postgres.sh", "postgres", "python", "-m", "app.services.data_print" ]
+
+volumes:
+  my_db:
