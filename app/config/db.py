@@ -3,7 +3,7 @@ from app.config.settings import settings
 
 engine = create_async_engine(settings.ASYNC_DATABASE_URL, echo=False)
 
-AsyncSessionLocal = async_sessionmaker(
+AsyncSession = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
     autoflush=False,
@@ -12,5 +12,5 @@ AsyncSessionLocal = async_sessionmaker(
 
 
 async def get_postgresql_db():
-    async with AsyncSessionLocal() as session:
+    async with AsyncSession() as session:
         yield session
