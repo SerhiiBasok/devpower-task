@@ -9,5 +9,12 @@ services:
     volumes:
       - my_db:/var/lib/postgresql/data
 
+  migrations:
+    build: .
+    depends_on:
+      - postgres
+    working_dir: /app
+    command: python -m app.models.init_db
+
 volumes:
   my_db:
