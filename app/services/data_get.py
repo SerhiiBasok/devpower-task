@@ -1,5 +1,7 @@
 import asyncio
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
+
 from app.config.db import AsyncSession
 from app.models.country import Country
 from app.models.regions import Region
@@ -21,12 +23,20 @@ class DataSaver:
             for item in data:
                 region = await self.get_or_create_region(session, item["region"])
 
-                country = Country(
-                    name=item["country"],
-                    population=item["population"],
-                    region_id=region.id,
+                stmt = (
+                    insert(Country)
+                    .values(
+                        name=item["country"],
+                        population=item["population"],
+                        region_id=region.id,
+                    )
+                    .on_conflict_do_update(
+                        index_elements=["name"],
+                        set_={"population": item["population"], "region_id": region.id},
+                    )
                 )
-                session.add(country)
+
+                await session.execute(stmt)
 
             await session.commit()
 
