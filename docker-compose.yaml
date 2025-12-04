@@ -14,7 +14,18 @@ services:
     depends_on:
       - postgres
     working_dir: /app
-    command: python -m app.models.init_db
+    command: [ "./script/wait-for-postgres.sh", "postgres", "python", "-m", "app.models.init_db" ]
+
+
+  get_data:
+    build: .
+    depends_on:
+      - postgres
+      - migrations
+    env_file:
+      - .env
+    working_dir: /app
+    command: [ "./script/wait-for-postgres.sh", "postgres", "python", "-m", "app.services.data_get" ]
 
 volumes:
   my_db:
