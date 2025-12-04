@@ -1,18 +1,45 @@
 import asyncio
-import asyncpg
-from app.config.settings import settings
+from sqlalchemy import select
+from app.config.db import AsyncSession
+from app.models.country import Country
+from app.models.regions import Region
+from app.parsers.wiki_parser import WikiParser
 
 
-async def test():
-    conn = await asyncpg.connect(
-        host=settings.POSTGRES_HOST,
-        port=settings.POSTGRES_PORT,
-        user=settings.POSTGRES_USER,
-        password=settings.POSTGRES_PASSWORD,
-        database=settings.POSTGRES_DB,
-    )
-    print(await conn.fetch("SELECT 1"))
-    await conn.close()
+class DataSaver:
+    async def get_or_create_region(self, session, region_name: str) -> Region:
+        stmt = select(Region).where(Region.name == region_name)
+        region = await session.scalar(stmt)
+        if region is None:
+            region = Region(name=region_name)
+            session.add(region)
+            await session.flush()
+        return region
+
+    async def save_to_db(self, data: list[dict]):
+        async with AsyncSession() as session:
+            for item in data:
+                region = await self.get_or_create_region(session, item["region"])
+
+                country = Country(
+                    name=item["country"],
+                    population=item["population"],
+                    region_id=region.id,
+                )
+                session.add(country)
+
+            await session.commit()
+
+        print("Data saved to database")
 
 
-asyncio.run(test())
+async def main():
+    parser = WikiParser()
+    saver = DataSaver()
+
+    data = await parser.parse()
+    await saver.save_to_db(data)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
