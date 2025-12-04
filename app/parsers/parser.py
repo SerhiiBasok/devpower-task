@@ -1,14 +1,21 @@
 import httpx
 from bs4 import BeautifulSoup
-
-WIKI_URL = (
-    "https://en.wikipedia.org/wiki/List_of_countries_by_population_(United_Nations)"
-)
+from typing import Dict
 
 
-class WikiParser:
-    def __init__(self, url: str = WIKI_URL):
+class Parser:
+
+    def __init__(
+        self,
+        url: str,
+        table_selector: Dict[str, str],
+        population_index: int,
+        region_index: int,
+    ):
         self.url = url
+        self.table_selector = table_selector
+        self.population_index = population_index
+        self.region_index = region_index
 
     async def fetch_html(self) -> str:
         headers = {
@@ -26,7 +33,7 @@ class WikiParser:
     async def parse(self) -> list[dict]:
         html = await self.fetch_html()
         soup = BeautifulSoup(html, "html.parser")
-        table = soup.find("table", class_="wikitable")
+        table = soup.find(**self.table_selector)
 
         rows = table.find_all("tr")[1:]
 
@@ -41,8 +48,10 @@ class WikiParser:
                 continue
 
             country_name = cols[0].get_text(strip=True)
-            population_text = cols[2].get_text(strip=True).replace(",", "")
-            region_name = cols[4].get_text(strip=True)
+            population_text = (
+                cols[self.population_index].get_text(strip=True).replace(",", "")
+            )
+            region_name = cols[self.region_index].get_text(strip=True)
 
             if not population_text.isdigit():
                 continue
