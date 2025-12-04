@@ -34,3 +34,14 @@ async def main():
         )
 
         result = await session.execute(query)
+        for row in result.fetchall():
+            print(
+                f"Region: {row.region_name}\n"
+                f"Total population: {row.total_population}\n"
+                f"Largest country: {row.name_max_country_population} ({row.max_country_population})\n"
+                f"Smallest country: {row.name_min_country_population} ({row.min_country_population})\n"
+            )
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
