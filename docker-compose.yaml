@@ -27,5 +27,15 @@ services:
     working_dir: /app
     command: [ "./script/wait-for-postgres.sh", "postgres", "python", "-m", "app.services.data_get" ]
 
+  print_data:
+    build: .
+    depends_on:
+      - postgres
+      - migrations
+    env_file:
+      - .env
+    working_dir: /app
+    command: [ "./script/wait-for-postgres.sh", "postgres", "python", "-m", "app.services.data_print" ]
+
 volumes:
   my_db:
